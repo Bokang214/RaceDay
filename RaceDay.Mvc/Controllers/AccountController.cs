@@ -1,6 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity.Data;
+﻿using RaceDay.Mvc.Models.Api;
 using Microsoft.AspNetCore.Mvc;
-using RaceDay.Mvc.Models.Api;
 using RaceDay.Mvc.Models.ViewModels;
 using RaceDay.Mvc.Services;
 

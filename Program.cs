@@ -1,7 +1,7 @@
 using System.Reflection;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using RaceDay.Api.Data;
 using RaceDay.Api.Services;
 
