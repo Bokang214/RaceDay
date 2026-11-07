@@ -1,0 +1,62 @@
+﻿@model RegisterViewModel
+@{
+    ViewData["Title"] = "Create your account";
+}
+<div class="auth-wrap">
+    <div class="auth-card card-raceday wide">
+        <div class="auth-head">
+            <span class="brand-mark lg"><i class="bi bi-lightning-charge-fill"></i></span>
+            <h1>Join RaceDay</h1>
+            <p class="text-muted">Create a free account to enter events or run your own.</p>
+        </div>
+
+        <form asp-controller="Account" asp-action="Register" method="post" novalidate>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <div class="role-picker mb-4">
+                <label class="role-option">
+                    <input type="radio" name="Role" value="Participant" checked="@(Model.Role != "Organiser")" />
+                    <span class="role-card"><i class="bi bi-person-running"></i><strong>I want to race</strong><small>Find events, enrol and see my results</small></span>
+                </label>
+                <label class="role-option">
+                    <input type="radio" name="Role" value="Organiser" checked="@(Model.Role == "Organiser")" />
+                    <span class="role-card"><i class="bi bi-clipboard2-data"></i><strong>I organise events</strong><small>Create events, manage entries and publish results</small></span>
+                </label>
+            </div>
+            <span asp-validation-for="Role" class="field-error"></span>
+
+            <div class="row g-3">
+                <div class="col-12">
+                    <label asp-for="FullName" class="form-label"></label>
+                    <input asp-for="FullName" class="form-control" autocomplete="name" maxlength="100" />
+                    <span asp-validation-for="FullName" class="field-error"></span>
+                </div>
+                <div class="col-12">
+                    <label asp-for="Email" class="form-label"></label>
+                    <input asp-for="Email" type="email" class="form-control" autocomplete="email" maxlength="150" />
+                    <span asp-validation-for="Email" class="field-error"></span>
+                </div>
+                <div class="col-12 col-md-6">
+                    <label asp-for="Password" class="form-label"></label>
+                    <input asp-for="Password" type="password" class="form-control" autocomplete="new-password" />
+                    <div class="form-text">At least 8 characters.</div>
+                    <span asp-validation-for="Password" class="field-error"></span>
+                </div>
+                <div class="col-12 col-md-6">
+                    <label asp-for="ConfirmPassword" class="form-label"></label>
+                    <input asp-for="ConfirmPassword" type="password" class="form-control" autocomplete="new-password" />
+                    <span asp-validation-for="ConfirmPassword" class="field-error"></span>
+                </div>
+                <div class="col-12" id="dobGroup">
+                    <label for="DateOfBirth" class="form-label">Date of birth <span class="text-muted">(optional)</span></label>
+                    <input type="date" class="form-control" id="DateOfBirth" name="DateOfBirth" value="@Model.DateOfBirth?.ToString("yyyy-MM-dd")" max="@DateTime.UtcNow.ToString("yyyy-MM-dd")" />
+                    <span asp-validation-for="DateOfBirth" class="field-error"></span>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-accent btn-lg w-100 mt-4">Create account</button>
+        </form>
+
+        <p class="text-center mt-4 mb-0">Already have an account? <a asp-action="Login">Log in</a></p>
+    </div>
+</div>

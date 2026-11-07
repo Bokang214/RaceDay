@@ -1,0 +1,88 @@
+﻿@model EventEnrolmentsViewModel
+@{
+    ViewData["Title"] = "Enrolments";
+    var all = Model.Enrolments;
+    var categories = all.Select(e => e.CategoryName).Distinct().OrderBy(c => c).ToList();
+}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-controller="Organiser" asp-action="Events">My events</a></li>
+        <li class="breadcrumb-item"><a asp-controller="Events" asp-action="Details" asp-route-id="@Model.Event.EventId">@Model.Event.EventName</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Enrolments</li>
+    </ol>
+</nav>
+
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-4">
+    <div>
+        <span class="page-kicker">@Model.Event.EventName &middot; @UiHelpers.ShortDate(Model.Event.EventDate)</span>
+        <h1 class="page-title">Enrolments</h1>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary" asp-controller="Categories" asp-action="Index" asp-route-eventId="@Model.Event.EventId"><i class="bi bi-tags"></i> Categories</a>
+        <a class="btn btn-accent" asp-controller="Results" asp-action="Entry" asp-route-eventId="@Model.Event.EventId"><i class="bi bi-stopwatch"></i> Enter results</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3"><div class="mini-stat"><strong>@all.Count</strong><span>Participants</span></div></div>
+    <div class="col-6 col-md-3"><div class="mini-stat"><strong>@all.Count(e => e.Status == "Confirmed")</strong><span>Confirmed</span></div></div>
+    <div class="col-6 col-md-3"><div class="mini-stat"><strong>@all.Count(e => e.Status == "Pending")</strong><span>Pending</span></div></div>
+    <div class="col-6 col-md-3"><div class="mini-stat"><strong>@all.Count(e => e.Status == "Completed")</strong><span>Completed</span></div></div>
+</div>
+
+@if (categories.Count > 1 || !string.IsNullOrWhiteSpace(Model.CategoryFilter))
+{
+    <form method="get" asp-action="ForEvent" class="d-flex gap-2 align-items-end mb-3">
+        <input type="hidden" name="eventId" value="@Model.Event.EventId" />
+        <div>
+            <label class="form-label" for="category">Category</label>
+            <select class="form-select" id="category" name="category" data-autosubmit>
+                <option value="">All categories</option>
+                @foreach (var c in Model.Event.Categories.Select(c => c.CategoryName).Distinct().OrderBy(c => c))
+                {
+                    <option value="@c" selected="@string.Equals(Model.CategoryFilter, c, StringComparison.OrdinalIgnoreCase)">@c</option>
+                }
+            </select>
+        </div>
+        <button type="submit" class="btn btn-outline-secondary">Filter</button>
+    </form>
+}
+
+@if (all.Count == 0)
+{
+    <div class="empty-state">
+        <i class="bi bi-people"></i>
+        <h3>@(string.IsNullOrWhiteSpace(Model.CategoryFilter) ? "Nobody has enrolled yet" : "Nobody in that category yet")</h3>
+        <p>Share the event page to get people on the start list.</p>
+    </div>
+}
+else
+{
+    <div class="card-raceday p-0 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-raceday align-middle mb-0">
+                <thead>
+                    <tr><th>#</th><th>Participant</th><th>Category</th><th>Enrolled</th><th>Status</th><th>Finish time</th><th>Position</th></tr>
+                </thead>
+                <tbody>
+                    @{
+                        var n = 0;
+                    }
+                    @foreach (var e in all)
+                    {
+                        n++;
+                        <tr>
+                            <td class="text-muted">@n</td>
+                            <td class="fw-semibold">@e.ParticipantName</td>
+                            <td>@e.CategoryName</td>
+                            <td class="text-nowrap">@e.EnrolmentDate.ToString("d MMM yyyy")</td>
+                            <td><partial name="_StatusBadge" model="e.Status" /></td>
+                            <td>@UiHelpers.Time(e.FinishTime)</td>
+                            <td>@(e.Position is int p ? UiHelpers.Ordinal(p) : "-")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

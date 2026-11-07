@@ -1,0 +1,80 @@
+﻿@model ResultsEntryViewModel
+@{
+    ViewData["Title"] = "Enter results";
+    var locked = !Model.EventHasHappened;
+}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-controller="Organiser" asp-action="Events">My events</a></li>
+        <li class="breadcrumb-item"><a asp-controller="Events" asp-action="Details" asp-route-id="@Model.EventId">@Model.EventName</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Results</li>
+    </ol>
+</nav>
+
+<div class="mb-4">
+    <span class="page-kicker">@Model.EventName &middot; @UiHelpers.ShortDate(Model.EventDate)</span>
+    <h1 class="page-title">Enter results</h1>
+    <p class="text-muted mb-0">Record each finisher's time and position. Participants see their result as soon as you save it.</p>
+</div>
+
+@if (locked)
+{
+    <div class="alert alert-warning"><i class="bi bi-hourglass-split me-2"></i>This event has not taken place yet. Results can be entered from the day after the event.</div>
+}
+
+@if (Model.Rows.Count == 0)
+{
+    <div class="empty-state">
+        <i class="bi bi-stopwatch"></i>
+        <h3>No participants to score</h3>
+        <p>Nobody has enrolled in this event.</p>
+    </div>
+}
+else
+{
+    <form asp-action="Save" method="post">
+        <input type="hidden" name="eventId" value="@Model.EventId" />
+        <div class="card-raceday p-0 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-raceday align-middle mb-0">
+                    <thead>
+                        <tr><th>Participant</th><th>Category</th><th style="width:190px">Finish time (hh:mm:ss)</th><th style="width:140px">Position</th><th>Saved</th></tr>
+                    </thead>
+                    <tbody>
+                        @for (var i = 0; i < Model.Rows.Count; i++)
+                        {
+                            var row = Model.Rows[i];
+                            <tr>
+                                <td class="fw-semibold">
+                                    @row.ParticipantName
+                                    <input type="hidden" name="rows[@i].EnrolmentId" value="@row.EnrolmentId" />
+                                </td>
+                                <td>@row.CategoryName</td>
+                                <td>
+                                    <input type="time" step="1" class="form-control form-control-sm" name="rows[@i].FinishTime" value="@row.FinishTime?.ToString("HH:mm:ss")" disabled="@locked" aria-label="Finish time for @row.ParticipantName" />
+                                </td>
+                                <td>
+                                    <input type="number" min="1" step="1" class="form-control form-control-sm" name="rows[@i].Position" value="@row.Position" disabled="@locked" aria-label="Position for @row.ParticipantName" />
+                                </td>
+                                <td>
+                                    @if (row.ResultId is not null)
+                                    {
+                                        <span class="status-badge status-completed"><i class="bi bi-trophy-fill"></i> Published</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">Not yet</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="d-flex gap-2 mt-3">
+            <button type="submit" class="btn btn-accent btn-lg" disabled="@locked"><i class="bi bi-cloud-check-fill"></i> Save results</button>
+            <a class="btn btn-outline-secondary btn-lg" asp-controller="Enrolments" asp-action="ForEvent" asp-route-eventId="@Model.EventId">Back to enrolments</a>
+        </div>
+    </form>
+}

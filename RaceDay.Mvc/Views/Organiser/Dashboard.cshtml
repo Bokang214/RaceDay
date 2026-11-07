@@ -1,0 +1,118 @@
+﻿@model OrganiserDashboardResponse
+@{
+    ViewData["Title"] = "Dashboard";
+    var user = Context.Session.GetSessionUser();
+    var today = DateOnly.FromDateTime(DateTime.UtcNow);
+    var upcoming = Model.Events.Where(e => e.IsUpcoming).OrderBy(e => e.EventDate).ToList();
+    var maxEnrol = Model.Events.Count == 0 ? 1 : Math.Max(1, Model.Events.Max(e => e.EnrolmentCount));
+}
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-4">
+    <div>
+        <span class="page-kicker">Organiser dashboard</span>
+        <h1 class="page-title">Hello, @user?.FullName</h1>
+    </div>
+    <a class="btn btn-accent" asp-action="Create"><i class="bi bi-plus-circle-fill"></i> Create event</a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-12 col-md-4">
+        <div class="stat-card">
+            <i class="bi bi-flag-fill"></i>
+            <div><span class="stat-value">@Model.TotalEvents</span><span class="stat-label">Events</span></div>
+        </div>
+    </div>
+    <div class="col-12 col-md-4">
+        <div class="stat-card stat-orange">
+            <i class="bi bi-people-fill"></i>
+            <div><span class="stat-value">@Model.TotalEnrolments</span><span class="stat-label">Total enrolments</span></div>
+        </div>
+    </div>
+    <div class="col-12 col-md-4">
+        <div class="stat-card stat-green">
+            <i class="bi bi-calendar-check-fill"></i>
+            <div><span class="stat-value">@Model.UpcomingEvents</span><span class="stat-label">Upcoming events</span></div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="card-raceday h-100">
+            <h2 class="section-title">Upcoming dates</h2>
+            @if (upcoming.Count == 0)
+            {
+                <p class="text-muted mb-0">No upcoming events. Create one to get started.</p>
+            }
+            else
+            {
+                <ul class="timeline">
+                    @foreach (var e in upcoming)
+                    {
+                        var days = e.EventDate.DayNumber - today.DayNumber;
+                        <li>
+                            <div class="timeline-date"><strong>@e.EventDate.ToString("dd")</strong><span>@e.EventDate.ToString("MMM")</span></div>
+                            <div class="timeline-body">
+                                <a asp-controller="Events" asp-action="Details" asp-route-id="@e.EventId">@e.EventName</a>
+                                <small class="text-muted d-block">@e.Location &middot; @(days == 0 ? "Today" : days == 1 ? "Tomorrow" : $"in {days} days")</small>
+                            </div>
+                            <span class="count-pill">@e.EnrolmentCount <i class="bi bi-people-fill"></i></span>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card-raceday h-100">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="section-title">Enrolments per event</h2>
+                <a class="small" asp-action="Events">Manage events</a>
+            </div>
+            @if (Model.Events.Count == 0)
+            {
+                <div class="empty-state compact">
+                    <i class="bi bi-flag"></i>
+                    <p>You have not created any events yet.</p>
+                    <a class="btn btn-accent btn-sm" asp-action="Create">Create your first event</a>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-raceday align-middle">
+                        <thead>
+                            <tr><th>Event</th><th>Date</th><th class="w-35">Enrolments</th><th></th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var e in Model.Events.OrderBy(x => x.EventDate))
+                            {
+                                <tr>
+                                    <td>
+                                        <a class="fw-semibold" asp-controller="Events" asp-action="Details" asp-route-id="@e.EventId">@e.EventName</a>
+                                        @if (!e.IsUpcoming)
+                                        {
+                                            <span class="badge text-bg-secondary ms-1">Finished</span>
+                                        }
+                                    </td>
+                                    <td class="text-nowrap">@UiHelpers.ShortDate(e.EventDate)</td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="progress flex-grow-1" role="progressbar" aria-label="Enrolments for @e.EventName" aria-valuenow="@e.EnrolmentCount" aria-valuemin="0" aria-valuemax="@maxEnrol">
+                                                <div class="progress-bar" style="width:@((int)Math.Round(100.0 * e.EnrolmentCount / maxEnrol))%"></div>
+                                            </div>
+                                            <strong>@e.EnrolmentCount</strong>
+                                        </div>
+                                    </td>
+                                    <td class="text-end">
+                                        <a class="btn btn-sm btn-outline-secondary" asp-controller="Enrolments" asp-action="ForEvent" asp-route-eventId="@e.EventId">Enrolments</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

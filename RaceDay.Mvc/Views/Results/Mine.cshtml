@@ -1,0 +1,72 @@
+﻿@model List<LeaderboardEntryResponse>
+@{
+    ViewData["Title"] = "My results";
+    var podium = Model.Count(r => r.Position is >= 1 and <= 3);
+}
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-4">
+    <div>
+        <span class="page-kicker">Participant</span>
+        <h1 class="page-title">My results</h1>
+    </div>
+    <a class="btn btn-outline-secondary" asp-controller="Enrolments" asp-action="Mine"><i class="bi bi-ticket-perforated"></i> My enrolments</a>
+</div>
+
+@if (Model.Count == 0)
+{
+    <div class="empty-state">
+        <i class="bi bi-trophy"></i>
+        <h3>No results yet</h3>
+        <p>Once an organiser publishes the results of an event you raced in, they will show up here.</p>
+        <a class="btn btn-accent" asp-controller="Home" asp-action="Index">Find your next race</a>
+    </div>
+}
+else
+{
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3"><div class="mini-stat"><strong>@Model.Count</strong><span>Races finished</span></div></div>
+        <div class="col-6 col-md-3"><div class="mini-stat"><strong>@podium</strong><span>Podium finishes</span></div></div>
+    </div>
+
+    <div class="row g-3">
+        @foreach (var r in Model)
+        {
+            var medal = r.Position switch { 1 => "gold", 2 => "silver", 3 => "bronze", _ => "plain" };
+            <div class="col-12 col-lg-6">
+                <div class="result-card medal-@medal">
+                    <div class="result-rank">
+                        @if (r.Position is int pos)
+                        {
+                            <span class="rank-number">@UiHelpers.Ordinal(pos)</span>
+                            <span class="rank-sub">of @r.TotalFinishers</span>
+                        }
+                        else
+                        {
+                            <i class="bi bi-flag-fill"></i>
+                        }
+                    </div>
+                    <div class="result-body">
+                        <h2 class="enrol-title mb-1"><a asp-controller="Events" asp-action="Details" asp-route-id="@r.EventId">@r.EventName</a></h2>
+                        <div class="event-meta mb-2">
+                            @if (r.EventDate is DateOnly d)
+                            {
+                                <span><i class="bi bi-calendar3"></i> @UiHelpers.Date(d)</span>
+                            }
+                            <span><i class="bi bi-tag-fill"></i> @r.CategoryName</span>
+                        </div>
+                        <div class="result-time"><i class="bi bi-stopwatch-fill"></i> @UiHelpers.Time(r.FinishTime)</div>
+                        <div class="result-line">
+                            @if (r.Position is int p)
+                            {
+                                <text><strong>@UiHelpers.Ordinal(p)</strong> out of <strong>@r.TotalFinishers</strong> @(r.TotalFinishers == 1 ? "finisher" : "finishers")</text>
+                            }
+                            else
+                            {
+                                <text>Position not recorded</text>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

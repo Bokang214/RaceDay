@@ -1,0 +1,71 @@
+﻿@model List<EnrolmentDetailResponse>
+@{
+    ViewData["Title"] = "My enrolments";
+}
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-4">
+    <div>
+        <span class="page-kicker">Participant</span>
+        <h1 class="page-title">My enrolments</h1>
+    </div>
+    <a class="btn btn-accent" asp-controller="Home" asp-action="Index"><i class="bi bi-search"></i> Find events</a>
+</div>
+
+<div class="status-legend mb-3">
+    <span class="status-badge status-confirmed"><i class="bi bi-check-circle-fill"></i> Confirmed</span> <small class="text-muted">event still to come</small>
+    <span class="status-badge status-pending"><i class="bi bi-hourglass-split"></i> Pending</span> <small class="text-muted">awaiting results</small>
+    <span class="status-badge status-completed"><i class="bi bi-trophy-fill"></i> Completed</span> <small class="text-muted">results published</small>
+</div>
+
+@if (Model.Count == 0)
+{
+    <div class="empty-state">
+        <i class="bi bi-ticket-perforated"></i>
+        <h3>You have not enrolled in anything yet</h3>
+        <p>Pick an event, choose a category and you are on the start list.</p>
+        <a class="btn btn-accent" asp-controller="Home" asp-action="Index">Browse upcoming events</a>
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var e in Model)
+        {
+            <div class="col-12 col-lg-6">
+                <div class="enrol-card @UiHelpers.StatusClass(e.Status)-edge">
+                    <div class="d-flex justify-content-between align-items-start gap-2">
+                        <h2 class="enrol-title"><a asp-controller="Events" asp-action="Details" asp-route-id="@e.EventId">@e.EventName</a></h2>
+                        <partial name="_StatusBadge" model="e.Status" />
+                    </div>
+                    <div class="event-meta mb-2">
+                        <span><i class="bi bi-calendar3"></i> @UiHelpers.Date(e.EventDate)</span>
+                        <span><i class="bi bi-geo-alt-fill"></i> @e.EventLocation</span>
+                        <span><i class="bi bi-tag-fill"></i> @e.CategoryName</span>
+                    </div>
+                    @if (e.Status == "Completed" && e.FinishTime is not null)
+                    {
+                        <div class="result-strip">
+                            <i class="bi bi-trophy-fill"></i>
+                            <span>Finished in <strong>@UiHelpers.Time(e.FinishTime)</strong>@if (e.Position is int p){
+                                <text> &middot; position <strong>@UiHelpers.Ordinal(p)</strong></text>
+                            }
+                        </span>
+                    </div>
+                }
+                    else
+                {
+                    <p class="small text-muted mb-2">@UiHelpers.StatusHint(e.Status)</p>
+                }
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">Enrolled @e.EnrolmentDate.ToString("d MMM yyyy")</small>
+                    @if (e.Status == "Confirmed")
+                    {
+                        <form asp-action="Withdraw" asp-route-id="@e.EnrolmentId" method="post" class="confirm-form" data-confirm="Withdraw from &quot;@e.EventName&quot;?">
+                            <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-x-circle"></i> Withdraw</button>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+}

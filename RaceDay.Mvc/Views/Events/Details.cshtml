@@ -1,0 +1,154 @@
+﻿@model EventDetailsViewModel
+@{
+    var ev = Model.Event;
+    ViewData["Title"] = ev.EventName;
+    var user = Context.Session.GetSessionUser();
+    var enrolledCategoryIds = Model.MyEnrolments.Select(e => e.CategoryId).ToHashSet();
+}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        @if (user is not null && user.IsOrganiser)
+        {
+            <li class="breadcrumb-item"><a asp-controller="Organiser" asp-action="Events">My events</a></li>
+        }
+        else
+        {
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Events</a></li>
+        }
+        <li class="breadcrumb-item active" aria-current="page">@ev.EventName</li>
+    </ol>
+</nav>
+
+<section class="event-hero @UiHelpers.TypeClass(ev.EventType)">
+    <i class="bi @UiHelpers.TypeIcon(ev.EventType) banner-icon"></i>
+    @if (!string.IsNullOrEmpty(ev.BannerImageUrl))
+    {
+        <img src="@ev.BannerImageUrl" alt="Banner for @ev.EventName" onerror="this.remove()" />
+    }
+    <div class="event-hero-overlay">
+        <span class="type-chip"><i class="bi @UiHelpers.TypeIcon(ev.EventType)"></i> @ev.EventType</span>
+        <h1>@ev.EventName</h1>
+    </div>
+</section>
+
+<div class="row g-4 mt-1">
+    <div class="col-lg-8">
+        <div class="card-raceday mb-4">
+            <div class="info-grid">
+                <div><i class="bi bi-calendar3"></i><span>Date</span><strong>@UiHelpers.Date(ev.EventDate)</strong></div>
+                <div><i class="bi bi-geo-alt-fill"></i><span>Location</span><strong>@ev.Location</strong></div>
+                <div><i class="bi bi-signpost-split-fill"></i><span>Distance</span><strong>@ev.Distance.ToString("0.##") km</strong></div>
+                <div><i class="bi @UiHelpers.TypeIcon(ev.EventType)"></i><span>Type</span><strong>@ev.EventType</strong></div>
+            </div>
+        </div>
+
+        <div class="card-raceday">
+            <h2 class="section-title">About this event</h2>
+            @if (string.IsNullOrWhiteSpace(ev.Description))
+            {
+                <p class="text-muted mb-0">The organiser has not added a description yet.</p>
+            }
+            else
+            {
+                <p class="description-text mb-0">@ev.Description</p>
+            }
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card-raceday enrol-panel">
+            <h2 class="section-title">Categories</h2>
+
+            @if (ev.Categories.Count == 0)
+            {
+                <p class="text-muted">No categories have been added yet. Check back soon.</p>
+            }
+
+            @if (user is null)
+            {
+                @if (ev.Categories.Count > 0)
+                {
+                    <ul class="category-list">
+                        @foreach (var c in ev.Categories)
+                        {
+                            <li><i class="bi bi-tag-fill"></i> @c.CategoryName</li>
+                        }
+                    </ul>
+                }
+                <a class="btn btn-accent w-100" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Details", "Events", new { id = ev.EventId })">
+                    <i class="bi bi-box-arrow-in-right"></i> Log in to enrol
+                </a>
+                <p class="small text-muted mt-2 mb-0">New here? <a asp-controller="Account" asp-action="Register">Create a free account</a>.</p>
+            }
+            else if (user.IsParticipant)
+            {
+                @if (!Model.IsUpcoming)
+                {
+                    <div class="alert alert-secondary mb-3"><i class="bi bi-flag-fill me-1"></i> This event has finished, so enrolment is closed.</div>
+                    @if (ev.Categories.Count > 0)
+                    {
+                        <ul class="category-list">
+                            @foreach (var c in ev.Categories)
+                            {
+                                <li><i class="bi bi-tag-fill"></i> @c.CategoryName</li>
+                            }
+                        </ul>
+                    }
+                }
+                else if (ev.Categories.Count > 0)
+                {
+                    <form asp-controller="Enrolments" asp-action="Enrol" method="post">
+                        <input type="hidden" name="eventId" value="@ev.EventId" />
+                        <p class="small text-muted">Choose the category you want to race in.</p>
+                        <div class="category-options">
+                            @foreach (var c in ev.Categories)
+                            {
+                                var already = enrolledCategoryIds.Contains(c.CategoryId);
+                                <label class="category-option @(already ? "is-enrolled" : string.Empty)">
+                                    <input type="radio" name="categoryId" value="@c.CategoryId" disabled="@already" required />
+                                    <span class="category-option-name">@c.CategoryName</span>
+                                    @if (already)
+                                    {
+                                        <span class="status-badge status-confirmed"><i class="bi bi-check-circle-fill"></i> Enrolled</span>
+                                    }
+                                </label>
+                            }
+                        </div>
+                        <button type="submit" class="btn btn-accent w-100 mt-3"><i class="bi bi-ticket-perforated-fill"></i> Enrol now</button>
+                    </form>
+                }
+
+                @if (Model.MyEnrolments.Count > 0)
+                {
+                    <a class="btn btn-outline-secondary w-100 mt-2" asp-controller="Enrolments" asp-action="Mine">See my enrolments</a>
+                }
+            }
+            else
+            {
+                @if (ev.Categories.Count > 0)
+                {
+                    <ul class="category-list">
+                        @foreach (var c in ev.Categories)
+                        {
+                            <li><i class="bi bi-tag-fill"></i> @c.CategoryName</li>
+                        }
+                    </ul>
+                }
+
+                @if (Model.IsOwner)
+                {
+                    <div class="d-grid gap-2 mt-2">
+                        <a class="btn btn-accent" asp-controller="Organiser" asp-action="Edit" asp-route-id="@ev.EventId"><i class="bi bi-pencil-square"></i> Edit event</a>
+                        <a class="btn btn-outline-secondary" asp-controller="Categories" asp-action="Index" asp-route-eventId="@ev.EventId"><i class="bi bi-tags"></i> Manage categories</a>
+                        <a class="btn btn-outline-secondary" asp-controller="Enrolments" asp-action="ForEvent" asp-route-eventId="@ev.EventId"><i class="bi bi-people"></i> View enrolments</a>
+                        <a class="btn btn-outline-secondary" asp-controller="Results" asp-action="Entry" asp-route-eventId="@ev.EventId"><i class="bi bi-stopwatch"></i> Enter results</a>
+                    </div>
+                }
+                else
+                {
+                    <p class="small text-muted mb-0">You are logged in as an Organiser. Only Participants can enrol.</p>
+                }
+            }
+        </div>
+    </div>
+</div>

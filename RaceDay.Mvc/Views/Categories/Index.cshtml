@@ -1,0 +1,70 @@
+﻿@model CategoriesViewModel
+@{
+    ViewData["Title"] = "Categories";
+}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-controller="Organiser" asp-action="Events">My events</a></li>
+        <li class="breadcrumb-item"><a asp-controller="Events" asp-action="Details" asp-route-id="@Model.Event.EventId">@Model.Event.EventName</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Categories</li>
+    </ol>
+</nav>
+
+<div class="mb-4">
+    <span class="page-kicker">@Model.Event.EventName</span>
+    <h1 class="page-title">Categories</h1>
+    <p class="text-muted mb-0">Age or distance groups people choose when they enrol, for example "Under 20", "Senior", "10 km" or "21 km".</p>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card-raceday">
+            <h2 class="section-title">Current categories</h2>
+            @if (Model.Categories.Count == 0)
+            {
+                <div class="empty-state compact">
+                    <i class="bi bi-tags"></i>
+                    <p class="mb-0">No categories yet. Participants cannot enrol until you add at least one.</p>
+                </div>
+            }
+            else
+            {
+                <ul class="list-unstyled category-manage">
+                    @foreach (var c in Model.Categories)
+                    {
+                        <li>
+                            <form asp-action="Rename" method="post" class="d-flex gap-2 flex-grow-1">
+                                <input type="hidden" name="eventId" value="@Model.Event.EventId" />
+                                <input type="hidden" name="categoryId" value="@c.CategoryId" />
+                                <input type="text" name="categoryName" value="@c.CategoryName" class="form-control form-control-sm" maxlength="100" required aria-label="Category name" />
+                                <button type="submit" class="btn btn-sm btn-outline-secondary" title="Save name"><i class="bi bi-check2"></i></button>
+                            </form>
+                            <form asp-action="Delete" method="post" class="confirm-form" data-confirm="Delete the category &quot;@c.CategoryName&quot;?">
+                                <input type="hidden" name="eventId" value="@Model.Event.EventId" />
+                                <input type="hidden" name="categoryId" value="@c.CategoryId" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash3"></i></button>
+                            </form>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card-raceday">
+            <h2 class="section-title">Add a category</h2>
+            <form asp-action="Add" method="post">
+                <input type="hidden" name="eventId" value="@Model.Event.EventId" />
+                <label for="newCategoryName" class="form-label">Category name</label>
+                <input type="text" class="form-control" id="newCategoryName" name="newCategoryName" maxlength="100" required placeholder="e.g. Under 20" />
+                <button type="submit" class="btn btn-accent w-100 mt-3"><i class="bi bi-plus-circle-fill"></i> Add category</button>
+            </form>
+            <hr />
+            <div class="d-grid gap-2">
+                <a class="btn btn-outline-secondary" asp-controller="Enrolments" asp-action="ForEvent" asp-route-eventId="@Model.Event.EventId"><i class="bi bi-people"></i> View enrolments</a>
+                <a class="btn btn-outline-secondary" asp-controller="Organiser" asp-action="Events">Done</a>
+            </div>
+        </div>
+    </div>
+</div>
