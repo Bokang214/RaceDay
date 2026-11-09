@@ -22,5 +22,15 @@
 		<EmbeddedResource Remove="RaceDay.Mvc\**" />
 		<None Remove="RaceDay.Mvc\**" />
 	</ItemGroup>
+	<ItemGroup>
+		<Compile Remove="RaceDay.Api.Test\**" />
+		<Content Remove="RaceDay.Api.Test\**" />
+		<EmbeddedResource Remove="RaceDay.Api.Test\**" />
+		<None Remove="RaceDay.Api.Test\**" />
+		<Compile Remove="RaceDay.Mvc\**" />
+		<Content Remove="RaceDay.Mvc\**" />
+		<EmbeddedResource Remove="RaceDay.Mvc\**" />
+		<None Remove="RaceDay.Mvc\**" />
+	</ItemGroup>
 
 </Project>
