@@ -18,21 +18,20 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
-    # 1. Restore all three projects based on your folder structure
     - name: Restore dependencies
       run: |
         dotnet restore RaceDay.Api.csproj
         dotnet restore RaceDay.Mvc/RaceDay.Mvc.csproj
         dotnet restore RaceDay.Api.Test/RaceDay.Api.Test.csproj
 
-    # 2. Build the API (in the root folder)
     - name: Build API
       run: dotnet build RaceDay.Api.csproj --configuration Release --no-restore
 
-    # 3. Build the MVC app (in its sub-folder)
     - name: Build MVC
       run: dotnet build RaceDay.Mvc/RaceDay.Mvc.csproj --configuration Release --no-restore
 
-    # 4. Run the tests (in the test sub-folder)
+    - name: Build Tests
+      run: dotnet build RaceDay.Api.Test/RaceDay.Api.Test.csproj --configuration Release --no-restore
+
     - name: Run Tests
       run: dotnet test RaceDay.Api.Test/RaceDay.Api.Test.csproj --configuration Release --no-build --verbosity normal
